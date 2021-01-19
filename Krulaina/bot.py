@@ -43,4 +43,4 @@ for filename in os.listdir("./cogs"):
 
 
 # run client
-client.run()
+client.run("")

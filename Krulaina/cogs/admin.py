@@ -28,6 +28,39 @@ class Admin(commands.Cog):
 
 
     @commands.command()
+    async def kick(self, ctx, user : discord.Member, *, reason=None):
+        """ Kicks the specified member for the specified reason """
+        if ctx.author.guild_permissions.administrator:
+            name = user.name
+            await user.kick(reason=reason)
+            await ctx.send(f"Successfully kicked {name}")
+        else:
+            await ctx.send(f"{ctx.author} you dont have permission to kick someone!")
+
+    
+    @commands.command()
+    async def ban(self, ctx, user : discord.Member, *, reason=None):
+        """ Bans the specified member for the specified reason """
+        if ctx.author.guild_permissions.administrator:
+            name = user.name
+            await user.ban(reason=reason)
+            await ctx.send(f"Successfully banned {name}")
+        else:
+            await ctx.send(f"{ctx.author} you dont have permission to ban someone!")
+
+
+    @commands.command()
+    async def unban(self, ctx, uid : int):
+        """ Unbans the specified member """
+        if ctx.author.guild_permissions.administrator:
+            user = await self.client.fetch_user(uid)
+            await ctx.guild.unban(user)
+            await ctx.send(f"Successfully unbanned {uid}")
+        else:
+            await ctx.send(f"{ctx.author} you dont have permission to unban someone!")
+
+
+    @commands.command()
     async def generateCodes(self, ctx):
         if ctx.author.id == 198224062512758784:
             characters = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")

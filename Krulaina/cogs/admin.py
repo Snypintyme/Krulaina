@@ -13,7 +13,7 @@ class Admin(commands.Cog):
         if ctx.author.guild_permissions.administrator:
             number = 0
             if len(ctx.message.content) == 6:
-                number = 2
+                number = 1
             else:
                 try:
                     number = int(ctx.message.content[6:].strip())

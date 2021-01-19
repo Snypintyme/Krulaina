@@ -68,7 +68,10 @@ def saveToCollection(uid, codes):
     exists = False
     for i in range(len(data)):
         if uid in data[i]:
-            data[i] += adding
+            if "\n" in data[i]:
+                data[i] = data[i][:-1] + adding + "\n"
+            else:
+                data[i] = data[i] + adding
             exists = True
             break
 
@@ -648,5 +651,8 @@ async def leaveDungeon(ctx, message, floor):
 
     await changeEmbedColour(ctx, "Dungeon crawler", message, f"{ctx.author}, you managed to make it all the way to the {floor}{getSuffix(floor)} floor without dying!", discord.Colour.green())
     await sendReactions(message, [])
+
+
+
 
 

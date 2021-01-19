@@ -1,4 +1,4 @@
-import discord, asyncio, random, math, copy
+import discord, asyncio, random, math
 from discord.ext import commands
 
 
@@ -91,32 +91,34 @@ class Games(commands.Cog):
 
         def minimax(board, computerTurn):
             """ Minimax for hard mode """
+            # Check winner
             if checkWinner(board) == ":o:":
                 return 1
             elif checkWinner(board) == ":x:":
                 return -1
-            else:
-                newScore = 0
-                if computerTurn:
-                    score = -9999
-                    for row in range(3):
-                        for col in range(3):
-                            if board[row][col] != ":o:" and board[row][col] != ":x:":
-                                newBoard = copy.deepcopy(board)
-                                newBoard[row][col] = ":o:"
-                                newScore = minimax(newBoard, not computerTurn)
-                                score = max(score, newScore)
-                else:
-                    score = 9999
-                    for row in range(3):
-                        for col in range(3):
-                            if board[row][col] != ":o:" and board[row][col] != ":x:":
-                                newBoard = copy.deepcopy(board)
-                                newBoard[row][col] = ":x:"
-                                newScore = minimax(newBoard, not computerTurn)
-                                score = min(score, newScore)
 
-                return score
+            # Loop through all possible moves
+            scores = []
+            moveTaken = False
+            for row in range(3):
+                for col in range(3):
+                    if board[row][col] != ":o:" and board[row][col] != ":x:":
+                        prevSym = board[row][col]
+                        if computerTurn:
+                            board[row][col] = ":o:"
+                        else:
+                            board[row][col] = ":x:"
+                        moveTaken = True
+                        scores.append(minimax(board, not computerTurn))
+                        board[row][col] = prevSym
+
+            if moveTaken:
+                if computerTurn:
+                    return max(scores)
+                else:
+                    return min(scores)
+            else:
+                return 0
 
 
         # Variables
@@ -139,7 +141,7 @@ class Games(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send(f"Holy {ctx.author.mention} you took too long to respond, not playing with you :rage:")
 
-        if reaction == "🙂":
+        if str(reaction) == "🙂":
             hardMode = False
         else: 
             hardMode = True
@@ -174,17 +176,18 @@ class Games(commands.Cog):
             # Computer move
             else:
                 if hardMode:
-                    score = -9999
+                    score = -math.inf
                     for row in range(3):
                         for col in range(3):
                             if tttBoard[row][col] != ":o:" and tttBoard[row][col] != ":x:":
-                                newBoard = copy.deepcopy(tttBoard)
-                                newBoard[row][col] = ":o:"
-                                newScore = minimax(newBoard, False)
+                                prevSym = tttBoard[row][col]
+                                tttBoard[row][col] = ":o:"
+                                newScore = minimax(tttBoard, False)
                                 if newScore > score:
                                     score = newScore
                                     bestRow = row
                                     bestCol = col
+                                tttBoard[row][col] = prevSym
 
                     tttBoard[bestRow][bestCol] = ":o:"
                     usersTurn = not usersTurn

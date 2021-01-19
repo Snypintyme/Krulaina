@@ -12,7 +12,7 @@ class ChooseYourOwnAdventure(commands.Cog):
 
         # Confirm intention
         answer, message = await cogs.helperFunctions.confirmIntention(ctx, self.client, "Dungeon crawler", "Do you wish to go into the dungeon?", \
-                "You did not go into the dungeon", ["❌", "✅", "<:highscore:797647096119164928>"], discord.Colour.orange(), "React with help for instructions")
+                "You did not go into the dungeon", ["❌", "✅", "<:highscore:797647096119164928>"], discord.Colour.orange(), False)
         if answer == False:
             return
         elif answer == "<:highscore:797647096119164928>":

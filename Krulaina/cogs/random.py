@@ -5,6 +5,12 @@ class Random(commands.Cog):
     def  __init__(self, client):
         self.client = client
 
+    @commands.command() 
+    async def typeWords(self, ctx):
+        """ Makes Krulaina type whatever you specify """
+        await ctx.send(ctx.message.content[10:])
+
+
     @commands.command(aliases=["8ball"]) 
     async def eightBall(self, ctx):
         """ Magic 8ball """

@@ -13,7 +13,7 @@ class Admin(commands.Cog):
         if ctx.author.guild_permissions.administrator:
             number = 0
             if len(ctx.message.content) == 6:
-                number = 1
+                number = 2
             else:
                 try:
                     number = int(ctx.message.content[6:].strip())
@@ -58,6 +58,11 @@ class Admin(commands.Cog):
             await ctx.send(f"Successfully unbanned {uid}")
         else:
             await ctx.send(f"{ctx.author} you dont have permission to unban someone!")
+
+
+    @commands.command()
+    async def servers(self, ctx):
+        await ctx.send(f"I'm in {len(self.client.guilds)} servers!")
 
 
     @commands.command()

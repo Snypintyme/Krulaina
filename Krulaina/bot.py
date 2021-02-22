@@ -1,5 +1,5 @@
 # import stuff
-import discord, os
+import discord, os, webserver
 from discord.ext import commands
 
 #prefix
@@ -43,4 +43,6 @@ for filename in os.listdir("./cogs"):
 
 
 # run client
-client.run("")
+webserver.keepAlive()
+TOKEN = os.environ.get("SECRET_KEY")
+client.run(TOKEN)

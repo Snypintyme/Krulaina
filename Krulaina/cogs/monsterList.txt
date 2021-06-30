@@ -1,4 +1,0 @@
-Cave Bat | 3 | 1 | 2 
-Small Slime | 2 | 1 | 1
-Lizardman | 10 | 3 | 5
-Stone Golem | 20 | 2 | 2

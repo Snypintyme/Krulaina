@@ -1,4 +1,0 @@
-Rusty Dagger | 1 | 3 | 5 | 50
-Short Sword | 2 | 5 | 10 | 100
-Long Sword | 3 | 8 | 15 | 250
-Battle Axe | 6 | 10 | 15 | 500

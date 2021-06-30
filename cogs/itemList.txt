@@ -1,0 +1,3 @@
+Small Health Potion | Restores 2 hp | 100
+Medium Health Potion | Restores 5 hp | 200
+Large Health Potion | Restores 10 hp | 300

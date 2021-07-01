@@ -44,7 +44,7 @@ async def reload(ctx, extension):
 # Load all cogs on start
 client.load_extension(f"cogs.admin.admin")
 client.load_extension(f"cogs.games.adventure.cyoa")
-client.load_extension(f"cogs.games.dungeon.dungeonAdventure")
+client.load_extension(f"cogs.games.dungeon.dungeon")
 client.load_extension(f"cogs.games.gacha.animeRPG")
 client.load_extension(f"cogs.games.other.connect4")
 client.load_extension(f"cogs.games.other.games")

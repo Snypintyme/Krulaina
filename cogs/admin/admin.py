@@ -66,12 +66,17 @@ class Admin(commands.Cog):
         await ctx.send(f"I'm in {len(self.client.guilds)} servers!")
 
     @commands.command()
+    async def typeWords(self, ctx):
+        """ Makes Krulaina type whatever you specify """
+        await ctx.send(ctx.message.content[10:])
+
+    @commands.command()
     async def generateCodes(self, ctx):
         if ctx.author.id == 198224062512758784:
             characters = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
                           "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
                           "u", "v", "w", "x", "y", "z")
-            f = open("cogs/possibleCodes.txt", "w")
+            f = open("cogs/games/gacha/possibleCodes.txt", "w")
 
             line = ""
             count = 0
@@ -112,7 +117,7 @@ class Admin(commands.Cog):
             return line
 
         if ctx.author.id == 198224062512758784:
-            readFile = open("cogs/characterList.txt", "r")
+            readFile = open("cogs/games/gacha/characterList.txt", "r")
             data = readFile.readlines()
             readFile.close()
 
@@ -130,7 +135,7 @@ class Admin(commands.Cog):
             data = list(map(lambda x: x[1:], data))
             data = list(map(lambda x: combine(x), data))
 
-            writeFile = open("cogs/characterList.txt", "w")
+            writeFile = open("cogs/games/gacha/characterList.txt", "w")
             writeFile.writelines(data)
             writeFile.close()
 
@@ -151,14 +156,14 @@ class Admin(commands.Cog):
                 await ctx.send("Timed out, game not reset")
 
             if msg.content.lower() == "y" or msg.content.lower() == "yes":
-                os.remove("cogs/collections.txt")
-                os.remove("cogs/generatedCards.txt")
-                os.remove("cogs/inventory.txt")
-                f = open("cogs/collections.txt", "w")
+                os.remove("cogs/games/gacha/collections.txt")
+                os.remove("cogs/games/gacha/generatedCards.txt")
+                os.remove("cogs/games/gacha/inventory.txt")
+                f = open("cogs/games/gacha/collections.txt", "w")
                 f.close()
-                f = open("cogs/generatedCards.txt", "w")
+                f = open("cogs/games/gacha/generatedCards.txt", "w")
                 f.close()
-                f = open("cogs/inventory.txt", "w")
+                f = open("cogs/games/gacha/inventory.txt", "w")
                 f.close()
                 await ctx.send("Successfully reset")
             else:
@@ -179,8 +184,8 @@ class Admin(commands.Cog):
                 await ctx.send("Timed out, game not reset")
 
             if msg.content.lower() == "y" or msg.content.lower() == "yes":
-                os.remove("cogs/dungeonScores.txt")
-                f = open("cogs/dungeonScores.txt", "w")
+                os.remove("cogs/games/dungeon/dungeonScores.txt")
+                f = open("cogs/games/dungeon/dungeonScores.txt", "w")
                 f.close()
                 await ctx.send("Successfully reset")
             else:

@@ -310,7 +310,7 @@ async def showHighScores(ctx, client, message):
     """ Shows the top scores achieved by the user """
 
     # Get data
-    readFile = open("cogs/dungeonScores.txt", "r")
+    readFile = open("dungeonScores.txt", "r")
     data = readFile.readlines()
     readFile.close()
 
@@ -443,8 +443,8 @@ def generateMerchantGoods():
     """ Picks a random selection of 3 weapons or items for the merchant to sell """
 
     # Get data
-    weapons = getFromFile3("cogs/weaponList.txt", "|")
-    items = getFromFile3("cogs/itemList.txt", "|")
+    weapons = getFromFile3("weaponList.txt", "|")
+    items = getFromFile3("itemList.txt", "|")
     choices = weapons + items
 
     return [random.choice(choices) for i in range(3)]
@@ -465,7 +465,7 @@ def saveScore(uid, floor):
     """ Saves the highest floor the player achieved that run """
 
     # Get data
-    readFile = open("cogs/dungeonScores.txt", "r")
+    readFile = open("dungeonScores.txt", "r")
     data = readFile.readlines()
     readFile.close()
 
@@ -483,7 +483,7 @@ def saveScore(uid, floor):
         data.append(f"\n{uid},{floor}|{today}")
 
     # Write back to file
-    writeFile = open("cogs/dungeonScores.txt", "w")
+    writeFile = open("dungeonScores.txt", "w")
     writeFile.writelines(data)
     writeFile.close()
 
@@ -492,7 +492,7 @@ def spawnMonster():
     """ Spawns a random monster from monsterList """
 
     numOfMonsters = 4
-    monster = getFromFile2("cogs/monsterList.txt",
+    monster = getFromFile2("monsterList.txt",
                            random.randrange(0, numOfMonsters), "|")
     return Monster(*monster)
 

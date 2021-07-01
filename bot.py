@@ -42,10 +42,13 @@ async def reload(ctx, extension):
 
 
 # Load all cogs on start
-for filename in os.listdir("./cogs"):
-    if filename.endswith(".py"):
-        if filename != "helperFunctions.py":
-            client.load_extension(f"cogs.{filename[:-3]}")
+client.load_extension(f"cogs.admin.admin")
+client.load_extension(f"cogs.games.adventure.cyoa")
+client.load_extension(f"cogs.games.dungeon.dungeon")
+client.load_extension(f"cogs.games.gacha.animeRPG")
+client.load_extension(f"cogs.games.other.connect4")
+client.load_extension(f"cogs.games.other.games")
+client.load_extension(f"cogs.games.other.tic tac toe")
 
 # Run client
 webserver.keepAlive()

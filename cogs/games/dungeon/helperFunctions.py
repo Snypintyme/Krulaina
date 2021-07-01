@@ -1,181 +1,12 @@
 import discord, asyncio, math, random
+from cogs.games.adventure.helperFunctions import *
+from cogs.games.gacha.helperFunctions import *
 from datetime import date
 
-""" File handling functions """
-
-def getFromFile1(fileName, flag, whitespace):
-    """ Reads fileName and returns a list of the specified 
-    line, denoted by flag, split by the specified whitespace. 
-    Returns False if it dosen't exist in the file """
-
-    readFile = open(fileName, "r")
-    for line in readFile:
-        if flag in line:
-            readFile.close()
-            return list(map(str.strip, line.split(whitespace)))
-        
-    return False
-
-
-def getFromFile2(fileName, count, whitespace):
-    """ Reads fileName and returns a list of at 
-    line count, split by the specified whitespace. """
-
-    readFile = open(fileName, "r")
-    for line in readFile:
-        if count == 0:
-            readFile.close()
-            return list(map(str.strip, line.split(whitespace)))
-        else:
-            count -= 1
-
-
-def getFromFile3(path, whitespace):
-    """ Returns the entire specified file in a list, 
-    split by the specified whitespace """
-
-    readFile = open(path, "r")
-    data = readFile.readlines()
-    readFile.close()
-    return list(map(lambda x: list(map(str.strip, x.split(whitespace))), data))
-
-
-"""  AnimeRPG functions """
-def getGenderSymbols(gender):
-    """ Gets the appropriate gender symbol for displaying in discord """
-    
-    if gender == "M":
-        return ":male_sign:"
-    elif gender == "F":
-        return ":female_sign:"
-    else:
-        return ":male_sign::female_sign:"
-
-
-def saveToCollection(uid, codes):
-    """ Adds the code/s of a summon/s to a player's collection """
-    # Get data
-    readFile = open("cogs/collections.txt", "r")
-    data = readFile.readlines()
-    readFile.close()
-
-    # String form of codes
-    adding = ""
-    for code in codes:
-        adding += f", {code}"
-
-    # Add code to existing player
-    exists = False
-    for i in range(len(data)):
-        if uid in data[i]:
-            if "\n" in data[i]:
-                data[i] = data[i][:-1] + adding + "\n"
-            else:
-                data[i] = data[i] + adding
-            exists = True
-            break
-
-    # Add code to new player
-    if not exists:
-        data.append(f"\n{uid}{adding}")      
-
-    # Write back to file
-    writeFile = open("cogs/collections.txt", "w")
-    writeFile.writelines(data)
-    writeFile.close()
-
-
-async def getDesiredUser(ctx, bot):
-    initialMessage = ctx.message.content.split()
-    mentions = ctx.message.mentions
-    if len(initialMessage) == 1:
-        user = ctx.author
-    elif len(mentions) != 0:
-        user = mentions[0]
-    else:
-        try:
-            user = await bot.fetch_user(int(initialMessage[1]))
-        except:
-            await ctx.send(f"{ctx.author.mention} that user was not found!")
-            user = False
-    
-    return user
-
-
-""" Adventure functions """
-def getAdventure(filePath):
-    """ Loads the given adventure """
-    readFile = open(filePath, "r")
-    story = readFile.readlines()
-    readFile.close()
-
-    for i in range(1, len(story)):
-        story[i] = story[i].split("//")
-        for j in range(len(story[i])):
-            story[i][j] = story[i][j].split("->")
-            for k in range(len(story[i][j])):
-                story[i][j][k] = story[i][j][k].strip()
-
-    return story
-
-
-async def sendReactions(message, newReactions):
-    """ Clears all old reactions and adds the given reactions """
-    # Clear old reactions
-    await message.clear_reactions()
-
-    # Add new reactions
-    for r in newReactions:
-        await message.add_reaction(r)
-
-
-async def changeEmbedColour(ctx, newTitle, message, desc, newColour):
-    """ Edits the embed message with the new colour """
-    newEmbed = discord.Embed(title=newTitle, description=desc, colour=newColour)
-    await message.edit(embed=newEmbed)
-
-
-def getReactionNumber(reactionList, reaction):
-    """ Returns the number associated with the reaction """
-    count = 1
-    for r in reactionList:
-        if reaction == r:
-            return count
-        count += 1
-
-
-async def confirmIntention(ctx, client, header, desc, endMessage, reactions, desiredColour, footer):
-    """ Confirms if the user wanted to use a certain command """
-    # Display embed
-    if desiredColour:
-        myEmbed = discord.Embed(title=header, description=desc, colour=desiredColour)
-    else:
-        myEmbed = discord.Embed(title=header, description=desc)
-    if footer:
-        myEmbed.set_footer(text=footer)
-    message = await ctx.send(embed=myEmbed)
-    await sendReactions(message, reactions)
-
-    # Get response
-    try:
-        reaction, user = await client.wait_for("reaction_add", check=lambda reaction, reactor: reactor == ctx.author and \
-            str(reaction.emoji) in reactions and reaction.message == message, timeout = 60.0)
-    except asyncio.TimeoutError:
-        await changeEmbedColour(ctx, header, message, "Command timed out", discord.Colour.red())
-        return False, message
-
-    if str(reaction.emoji) == "❌":
-        await changeEmbedColour(ctx, header, message, endMessage, discord.Colour.red())
-        return False, message
-
-    return str(reaction.emoji), message
-
-
-""" Dungeon functions """
 
 class Creature():
     """ Parent of player and monster """
-    def  __init__(self, hp, name):
+    def __init__(self, hp, name):
         self.name = name
         self.hp = int(hp)
         self.maxHp = self.hp
@@ -208,7 +39,7 @@ class Creature():
 
 class Player(Creature):
     """ The user's player """
-    def  __init__(self, name):
+    def __init__(self, name):
         super().__init__(10, name)
         self.attack = 1
         self.weapons = []
@@ -231,7 +62,7 @@ class Player(Creature):
         """ Adds a weapon to the player's inventory """
         self.weapons.append(weapon)
         self.weaponCount += 1
-    
+
     def removeWeapon(self, index):
         """ Removes the weapon from the player's inventory """
         del self.weapons[index]
@@ -321,7 +152,7 @@ class Monster(Creature):
 
 class Goods():
     """ A generic purchasable good """
-    def  __init__(self, name, price):
+    def __init__(self, name, price):
         self.name = name
         self.price = price
 
@@ -336,7 +167,7 @@ class Goods():
 
 class Weapon(Goods):
     """ A generic weapon """
-    def  __init__(self, name, minAttack, maxAttack, durability, price):
+    def __init__(self, name, minAttack, maxAttack, durability, price):
         super().__init__(name, price)
         self.minAttack = int(minAttack)
         self.maxAttack = int(maxAttack)
@@ -358,9 +189,9 @@ class Weapon(Goods):
 
         if self.durability == self.maxDurability:
             self.setCondition(4)
-        elif self.durability >= math.ceil(self.maxDurability/2):
+        elif self.durability >= math.ceil(self.maxDurability / 2):
             self.setCondition(3)
-        elif self.durability >= math.ceil(self.maxDurability/5):
+        elif self.durability >= math.ceil(self.maxDurability / 5):
             self.setCondition(2)
         elif self.durability <= 0:
             self.setCondition(0)
@@ -381,7 +212,7 @@ class Weapon(Goods):
 
 class Item(Goods):
     """ A generic item """
-    def  __init__(self, name, desc, price):
+    def __init__(self, name, desc, price):
         super().__init__(name, price)
         self.description = desc
 
@@ -393,14 +224,16 @@ async def displayDungeon(ctx, client, message, desc, footer, reactions, *args):
     """ Shows the current floor the player is on and gets the desired action """
 
     # Update Embed
-    dungeonEmbed = discord.Embed(title="Dungeon crawler", description=desc, colour=discord.Colour.orange())
+    dungeonEmbed = discord.Embed(title="Dungeon crawler",
+                                 description=desc,
+                                 colour=discord.Colour.orange())
     if footer: dungeonEmbed.set_footer(text=footer)
     count = 1
     for item in args:
         dungeonEmbed.add_field(name=f"{count}. {item[0]}", value=item[1])
         count += 1
     await message.edit(embed=dungeonEmbed)
-    if reactions: 
+    if reactions:
         await sendReactions(message, reactions)
 
         # Get response
@@ -408,7 +241,8 @@ async def displayDungeon(ctx, client, message, desc, footer, reactions, *args):
             reaction, user = await client.wait_for("reaction_add", check=lambda reaction, reactor: reactor == ctx.author and \
                 (str(reaction.emoji) in reactions) and reaction.message == message, timeout = 60.0)
         except asyncio.TimeoutError:
-            await changeEmbedColour(ctx, "Dungeon crawler", message, "Command timed out", discord.Colour.red())
+            await changeEmbedColour(ctx, "Dungeon crawler", message,
+                                    "Command timed out", discord.Colour.red())
             await sendReactions(message, [])
             return False
 
@@ -421,11 +255,18 @@ async def displayInventory(ctx, client, message, player, floor):
 
     # Update Embed
     itemList = player.getItemList()
-    reactions = ["<:inventory:797167772366536714>" if num == 0 else f"{num}\N{COMBINING ENCLOSING KEYCAP}" for num in range(0, len(itemList)+1)]
+    reactions = [
+        "<:inventory:797167772366536714>"
+        if num == 0 else f"{num}\N{COMBINING ENCLOSING KEYCAP}"
+        for num in range(0,
+                         len(itemList) + 1)
+    ]
     desc = f"{player.getName()} | {player.__str__()}"
 
     while True:
-        dungeonEmbed = discord.Embed(title="Dungeon crawler", description=desc, colour=discord.Colour.orange())
+        dungeonEmbed = discord.Embed(title="Dungeon crawler",
+                                     description=desc,
+                                     colour=discord.Colour.orange())
         dungeonEmbed.set_footer(text=f"Floor {floor}")
         dungeonEmbed.add_field(name="Items", value=player.getItems())
         dungeonEmbed.add_field(name="Weapons", value=player.getWeapons())
@@ -437,7 +278,8 @@ async def displayInventory(ctx, client, message, player, floor):
             reaction, user = await client.wait_for("reaction_add", check=lambda reaction, reactor: reactor == ctx.author and \
                 str(reaction.emoji) in reactions and reaction.message == message, timeout = 60.0)
         except asyncio.TimeoutError:
-            await changeEmbedColour(ctx, "Dungeon crawler", message, "Command timed out", discord.Colour.red())
+            await changeEmbedColour(ctx, "Dungeon crawler", message,
+                                    "Command timed out", discord.Colour.red())
             await sendReactions(message, [])
             return False
 
@@ -450,7 +292,7 @@ async def displayInventory(ctx, client, message, player, floor):
 
                 # Hard coded potions for now, maybe use currying in the future
                 else:
-                    item = itemList[i-1]
+                    item = itemList[i - 1]
                     if "Small" in item.getName():
                         value = 2
                     elif "Medium" in item.getName():
@@ -460,9 +302,9 @@ async def displayInventory(ctx, client, message, player, floor):
 
                     player.changeHP(value)
                     reactions = reactions[:-1]
-                    player.removeItem(i-1)
+                    player.removeItem(i - 1)
                     desc = f"{player.getName()} | {player.__str__()}\n\nYou drank a {item.getName()}!"
-                    
+
 
 async def showHighScores(ctx, client, message):
     """ Shows the top scores achieved by the user """
@@ -473,7 +315,8 @@ async def showHighScores(ctx, client, message):
     readFile.close()
 
     # Get highscores
-    serverMembers = [[member.name, str(member.id)] for member in ctx.guild.members]
+    serverMembers = [[member.name, str(member.id)]
+                     for member in ctx.guild.members]
     playerScoreExists = False
     serverScores = []
     for line in data:
@@ -485,8 +328,9 @@ async def showHighScores(ctx, client, message):
                 scores = list(map(lambda x: x.split("|"), line.split(",")))
                 for score in scores[1:]:
                     if "\n" in score[1]:
-                        serverScores.append([member[0], score[0], score[1][:-2]])
-                    else:   
+                        serverScores.append(
+                            [member[0], score[0], score[1][:-2]])
+                    else:
                         serverScores.append([member[0], score[0], score[1]])
 
     if playerScoreExists:
@@ -495,34 +339,38 @@ async def showHighScores(ctx, client, message):
         playerScores[-1][-1] = playerScores[-1][-1][:-2]
         recentScores = ""
         counter = 1
-        for i in range(len(playerScores)-1, 0, -1):
+        for i in range(len(playerScores) - 1, 0, -1):
             if counter <= 10:
                 recentScores += f"{counter}. {ctx.author} | Floor {playerScores[i][0]} | {playerScores[i][1]}\n"
                 counter += 1
-            else: 
+            else:
                 break
 
         # User's top scores
-        playerScores = sorted(playerScores[1:], key=lambda x: x[0], reverse=True)
+        playerScores = sorted(playerScores[1:],
+                              key=lambda x: x[0],
+                              reverse=True)
         topScores = ""
         counter = 1
         for i in range(0, len(playerScores)):
             if counter <= 10:
                 topScores += f"{counter}. {ctx.author} | Floor {playerScores[i][0]} | {playerScores[i][1]}\n"
                 counter += 1
-            else: 
+            else:
                 break
 
         # Guild's top scores
         if serverScores:
-            serverScores = sorted(serverScores, key=lambda x: x[1], reverse=True)
+            serverScores = sorted(serverScores,
+                                  key=lambda x: x[1],
+                                  reverse=True)
             topServerScores = ""
             counter = 1
             for i in range(0, len(serverScores)):
                 if counter <= 10:
                     topServerScores += f"{counter}. {serverScores[i][0]} | Floor {serverScores[i][1]} | {serverScores[i][2]}\n"
                     counter += 1
-                else: 
+                else:
                     break
         else:
             topServerScores = topScores
@@ -537,20 +385,22 @@ async def showHighScores(ctx, client, message):
             if counter <= 10:
                 topServerScores += f"{counter}. {serverScores[i][0]} | Floor {serverScores[i][1]} | {serverScores[i][2]}\n"
                 counter += 1
-            else: 
+            else:
                 break
-    
+
     # No recorded scores
     else:
         topScores = f"{ctx.author} has never survived the dungeon"
         recentScores = f"{ctx.author} has never survived the dungeon"
         topServerScores = f"Nobody from {ctx.guild.name} has ever survived the dungeon"
-    scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=topScores, colour=discord.Colour.orange())
+    scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores",
+                               description=topScores,
+                               colour=discord.Colour.orange())
     counter = 2
     while True:
         # Show high scores
         await message.edit(embed=scoreEmbed)
-        reactions = ["👑", "🔁"] 
+        reactions = ["👑", "🔁"]
         await sendReactions(message, reactions)
 
         # Get response
@@ -558,21 +408,30 @@ async def showHighScores(ctx, client, message):
             reaction, user = await client.wait_for("reaction_add", check=lambda reaction, reactor: reactor == ctx.author and \
                 (str(reaction.emoji) in reactions) and reaction.message == message, timeout = 60.0)
         except asyncio.TimeoutError:
-            await changeEmbedColour(ctx, "High Scores", message, "Command timed out", discord.Colour.red())
+            await changeEmbedColour(ctx, "High Scores", message,
+                                    "Command timed out", discord.Colour.red())
             await sendReactions(message, [])
-            return 
+            return
 
         if str(reaction.emoji) == "👑":
             return
         else:
             if counter == 1:
-                scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=topScores, colour=discord.Colour.orange())
+                scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores",
+                                           description=topScores,
+                                           colour=discord.Colour.orange())
                 counter += 1
             if counter == 2:
-                scoreEmbed = discord.Embed(title=f"{ctx.author}'s recent scores", description=recentScores, colour=discord.Colour.orange())
+                scoreEmbed = discord.Embed(
+                    title=f"{ctx.author}'s recent scores",
+                    description=recentScores,
+                    colour=discord.Colour.orange())
                 counter += 1
             else:
-                scoreEmbed = discord.Embed(title=f"{ctx.guild.name}'s top scores", description=topServerScores, colour=discord.Colour.orange())
+                scoreEmbed = discord.Embed(
+                    title=f"{ctx.guild.name}'s top scores",
+                    description=topServerScores,
+                    colour=discord.Colour.orange())
                 counter = 1
 
 
@@ -589,13 +448,16 @@ def generateMerchantGoods():
     choices = weapons + items
 
     return [random.choice(choices) for i in range(3)]
-    
+
 
 def formatGoods(goods):
     """ Format the merchants goods for displaying """
 
     names = [f"{x[0]} | {x[-1]} :moneybag:" for x in goods]
-    desc = [f"{x[1]} - {x[2]} :crossed_swords:" if len(x) == 5 else x[1] for x in goods]
+    desc = [
+        f"{x[1]} - {x[2]} :crossed_swords:" if len(x) == 5 else x[1]
+        for x in goods
+    ]
     return zip(names, desc)
 
 
@@ -618,7 +480,7 @@ def saveScore(uid, floor):
 
     # Add code to new player
     if not exists:
-        data.append(f"\n{uid},{floor}|{today}")      
+        data.append(f"\n{uid},{floor}|{today}")
 
     # Write back to file
     writeFile = open("cogs/dungeonScores.txt", "w")
@@ -630,7 +492,8 @@ def spawnMonster():
     """ Spawns a random monster from monsterList """
 
     numOfMonsters = 4
-    monster = getFromFile2("cogs/monsterList.txt", random.randrange(0, numOfMonsters), "|")
+    monster = getFromFile2("cogs/monsterList.txt",
+                           random.randrange(0, numOfMonsters), "|")
     return Monster(*monster)
 
 
@@ -649,10 +512,8 @@ def getSuffix(floor):
 async def leaveDungeon(ctx, message, floor):
     """ Tells the user that they left the dungeon """
 
-    await changeEmbedColour(ctx, "Dungeon crawler", message, f"{ctx.author}, you managed to make it all the way to the {floor}{getSuffix(floor)} floor without dying!", discord.Colour.green())
+    await changeEmbedColour(
+        ctx, "Dungeon crawler", message,
+        f"{ctx.author}, you managed to make it all the way to the {floor}{getSuffix(floor)} floor without dying!",
+        discord.Colour.green())
     await sendReactions(message, [])
-
-
-
-
-

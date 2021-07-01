@@ -20,7 +20,7 @@ class AnimeRPG(commands.Cog):
         uid = str(player.id)
 
         # Get invenotry from file
-        inv = getFromFile1("inventory.txt", uid, ",")
+        inv = getFromFile1("cogs/games/gacha/inventory.txt", uid, ",")
 
         # Check if user has any items
         if inv == False:
@@ -43,7 +43,7 @@ class AnimeRPG(commands.Cog):
         """ Shows user's collection """
         def getSummon(code):
             """ Format summon """
-            readFile = open("generatedCards.txt", "r")
+            readFile = open("cogs/games/gacha/generatedCards.txt", "r")
             for line in readFile:
                 if code in line:
                     desc = list(map(str.strip, line.split(',')))
@@ -60,7 +60,7 @@ class AnimeRPG(commands.Cog):
         uid = str(player.id)
 
         # Get user collection
-        collection = getFromFile1("collections.txt", uid, ",")
+        collection = getFromFile1("cogs/games/gacha/collections.txt", uid, ",")
 
         # Check collection exists
         if collection == False:
@@ -139,18 +139,20 @@ class AnimeRPG(commands.Cog):
 
         # Default viewing
         if ctx.message.content.strip() == ".v":
-            summons = getFromFile1("collections.txt", str(ctx.author.id), ",")
+            summons = getFromFile1("cogs/games/gacha/collections.txt",
+                                   str(ctx.author.id), ",")
             if summons == False:
                 await ctx.send(f"{ctx.author} you have no cards to view!")
             else:
-                character = getFromFile1("generatedCards.txt", summons[-1],
-                                         ",")
+                character = getFromFile1("cogs/games/gacha/generatedCards.txt",
+                                         summons[-1], ",")
 
         # Specified card viewing
         else:
             message = ctx.message.content.split()
             code = message[1]
-            character = getFromFile1("generatedCards.txt", code, ",")
+            character = getFromFile1("cogs/games/gacha/generatedCards.txt",
+                                     code, ",")
 
         # Display Card
         if character == False:
@@ -177,11 +179,13 @@ class AnimeRPG(commands.Cog):
                 row, col = random.randrange(8788), random.randrange(52)
 
                 # Get the code
-                codeLine = getFromFile2("possibleCodes.txt", row, " ")
+                codeLine = getFromFile2("cogs/games/gacha/possibleCodes.txt",
+                                        row, " ")
                 code = codeLine[col]
 
                 # Check if code is unique
-                if getFromFile1("generatedCards.txt", code, " ") == False:
+                if getFromFile1("cogs/games/gacha/generatedCards.txt", code,
+                                " ") == False:
                     return code
 
         def getRandomCharacter():
@@ -192,7 +196,8 @@ class AnimeRPG(commands.Cog):
             img = False
             while not img:
                 count = random.randrange(totalCharacters)
-                character = getFromFile2("characterList.txt", count, ",")
+                character = getFromFile2("cogs/games/gacha/characterList.txt",
+                                         count, ",")
                 if len(character) == 4:
                     img = True
 
@@ -225,7 +230,7 @@ class AnimeRPG(commands.Cog):
         saveToCollection(uid, [character[0]])
 
         # Add character to generatedCards
-        appendFile = open("generatedCards.txt", "a")
+        appendFile = open("cogs/games/gacha/generatedCards.txt", "a")
         appendFile.write(
             f"\n{character[0]}, {character[3]}, {character[4]}, {character[5]}, {character[1]}, {character[2]}, {character[6]}"
         )

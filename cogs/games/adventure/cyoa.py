@@ -12,7 +12,7 @@ class ChooseYourOwnAdventure(commands.Cog):
         """ Choose your own adventure """
 
         # Load story
-        story = getAdventure("adventure1.txt")
+        story = getAdventure("cogs/games/adventure/adventure1.txt")
 
         # Confirm intention
         answer, message = await confirmIntention(ctx, self.client, f"{ctx.author}'s adventure", f"{story[0]}\nDo you wish to go on this adventure?", \

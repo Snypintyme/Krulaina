@@ -52,7 +52,7 @@ def getGenderSymbols(gender):
 def saveToCollection(uid, codes):
     """ Adds the code/s of a summon/s to a player's collection """
     # Get data
-    readFile = open("collections.txt", "r")
+    readFile = open("cogs/games/gacha/collections.txt", "r")
     data = readFile.readlines()
     readFile.close()
 
@@ -77,7 +77,7 @@ def saveToCollection(uid, codes):
         data.append(f"\n{uid}{adding}")
 
     # Write back to file
-    writeFile = open("collections.txt", "w")
+    writeFile = open("cogs/games/gacha/collections.txt", "w")
     writeFile.writelines(data)
     writeFile.close()
 

@@ -59,7 +59,7 @@ class Games(commands.Cog):
         if ctx.message.content == ".8ball" or ctx.message.content == ".eightBall":
             await ctx.send("You didn't ask anything!")
         else:
-            readFile = open("8ball.txt", "r")
+            readFile = open("cogs/games/other/8ball.txt", "r")
             messages = readFile.readlines()
             readFile.close()
             await ctx.send(random.choice(messages))

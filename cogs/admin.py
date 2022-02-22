@@ -1,6 +1,7 @@
 # import stuff
 import discord, os, random, asyncio
 from discord.ext import commands
+from constants import SNYPINTYME_ID
 
 class Admin(commands.Cog):
     def  __init__(self, client):
@@ -18,13 +19,19 @@ class Admin(commands.Cog):
                 try:
                     number = int(ctx.message.content[6:].strip())
                 except:
-                    await ctx.send('Invalid syntax, must be ".purge <number>"')
+                    message = await ctx.send('Invalid syntax, must be ";purge <number>"')
+                    await asyncio.sleep(2)
+                    await message.delete()
+                    return
 
-            if number:
+            if number <= 100:
                 await ctx.channel.purge(limit=number+1)
                 message = await ctx.send(f"{number} messages purged")
-                await asyncio.sleep(2)
-                await message.delete()
+            else:
+                message = await ctx.send(f"Cannot purge more than 100 messages at a time!")
+            
+            await asyncio.sleep(2)
+            await message.delete()
 
 
     @commands.command()
@@ -62,12 +69,17 @@ class Admin(commands.Cog):
 
     @commands.command()
     async def servers(self, ctx):
-        await ctx.send(f"I'm in {len(self.client.guilds)} servers!")
+        """ Check the number of servers Krulaina is in """
+        number = len(self.client.guilds)
+        await ctx.send(f"I'm in {number} servers!")
+        if ctx.author.id == SNYPINTYME_ID:
+            for g in self.client.guilds:
+                await ctx.author.send(g.name)
 
 
     @commands.command()
     async def generateCodes(self, ctx):
-        if ctx.author.id == 198224062512758784:
+        if ctx.author.id == SNYPINTYME_ID:
             characters = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
             f = open("cogs/possibleCodes.txt", "w")
 
@@ -109,7 +121,7 @@ class Admin(commands.Cog):
             line = line[:-2] + "\n"
             return line  
 
-        if ctx.author.id == 198224062512758784:
+        if ctx.author.id == SNYPINTYME_ID:
             readFile = open("cogs/characterList.txt", "r")
             data = readFile.readlines()
             readFile.close()
@@ -140,7 +152,7 @@ class Admin(commands.Cog):
     @commands.command()
     async def resetGame(self, ctx):
         """ Resets all summons and inventory """
-        if ctx.author.id == 198224062512758784:
+        if ctx.author.id == SNYPINTYME_ID:
             try:
                 await ctx.send("Are you sure you want to reset the game? (yes, no)")
                 msg = await self.client.wait_for('message', check=lambda msg: msg.author==ctx.author and (msg.content.lower()=="y" or \
@@ -168,7 +180,7 @@ class Admin(commands.Cog):
     @commands.command()
     async def resetRecords(self, ctx):
         """ Resets all dungeon high scores """
-        if ctx.author.id == 198224062512758784:
+        if ctx.author.id == SNYPINTYME_ID:
             try:
                 await ctx.send("Are you sure you want to reset records? (yes, no)")
                 msg = await self.client.wait_for('message', check=lambda msg: msg.author==ctx.author and (msg.content.lower()=="y" or \

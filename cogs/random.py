@@ -7,7 +7,7 @@ class Random(commands.Cog):
 
     @commands.command() 
     async def typeWords(self, ctx):
-        """ Makes Krulaina type whatever you specify """
+        """ Krulaina will type whatever you specify """
         await ctx.send(ctx.message.content[10:])
 
 
@@ -15,7 +15,7 @@ class Random(commands.Cog):
     async def eightBall(self, ctx):
         """ Magic 8ball """
 
-        if ctx.message.content == ".8ball" or ctx.message.content == ".eightBall":
+        if ctx.message.content == ";8ball" or ctx.message.content == ";eightBall":
             await ctx.send("You didn't ask anything!")
         else:
             readFile = open("cogs/8ball.txt", "r")

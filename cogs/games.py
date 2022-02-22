@@ -9,7 +9,7 @@ class Games(commands.Cog):
 
     @commands.command(aliases=["rps"]) 
     async def rockPaperScissors(self, ctx):
-        """ Play a game of rock paper scissors with the bot """
+        """ Play a game of rock paper scissors with Krulaina """
 
         # Unicode emojis
         choices = ("🪨", "📰", "✂️")

@@ -159,7 +159,7 @@ class ChooseYourOwnAdventure(commands.Cog):
 
             # Check exit
             if exitDungeon:
-                cogs.helperFunctions.saveScore(str(ctx.author.id), floor)
+                cogs.helperFunctions.saveScore(ctx.author.id, ctx.author.name, floor)
                 break
             elif dead:
                 break

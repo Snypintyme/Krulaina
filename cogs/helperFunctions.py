@@ -1,5 +1,8 @@
-import discord, asyncio, math, random
-from datetime import date
+import discord, asyncio, math, random, psycopg2, os
+from dotenv import load_dotenv
+from datetime import datetime
+
+load_dotenv()
 
 """ File handling functions """
 
@@ -468,85 +471,111 @@ async def showHighScores(ctx, client, message):
     """ Shows the top scores achieved by the user """
 
     # Get data
-    readFile = open("cogs/dungeonScores.txt", "r")
-    data = readFile.readlines()
-    readFile.close()
+    con = psycopg2.connect(os.getenv("DATABASE_URL"), sslmode='require')
+    cur = con.cursor()
 
-    # Get highscores
-    serverMembers = [[member.name, str(member.id)] for member in ctx.guild.members]
-    playerScoreExists = False
-    serverScores = []
-    for line in data:
-        if str(ctx.author.id) in line:
-            playerScores = line.split(",")
-            playerScoreExists = True
-        for member in serverMembers:
-            if member[1] in line:
-                scores = list(map(lambda x: x.split("|"), line.split(",")))
-                for score in scores[1:]:
-                    if "\n" in score[1]:
-                        serverScores.append([member[0], score[0], score[1][:-2]])
-                    else:   
-                        serverScores.append([member[0], score[0], score[1]])
+    try:
+        cur.execute('SELECT * FROM dungeon_scores WHERE id = %s LIMIT 10', (ctx.author.id, ))
+        playerScores = cur.fetchall()
 
-    if playerScoreExists:
-        # User's most recent scores
-        playerScores = list(map(lambda x: x.split("|"), playerScores))
-        playerScores[-1][-1] = playerScores[-1][-1][:-2]
-        recentScores = ""
-        counter = 1
-        for i in range(len(playerScores)-1, 0, -1):
-            if counter <= 10:
-                recentScores += f"{counter}. {ctx.author} | Floor {playerScores[i][0]} | {playerScores[i][1]}\n"
-                counter += 1
-            else: 
-                break
+        cur.execute('''SELECT * 
+                       FROM dungeon_scores 
+                       ORDER BY floor DESC 
+                       LIMIT 10''')
+        globalScores = cur.fetchall()
 
-        # User's top scores
-        playerScores = sorted(playerScores[1:], key=lambda x: x[0], reverse=True)
-        topScores = ""
-        counter = 1
-        for i in range(0, len(playerScores)):
-            if counter <= 10:
-                topScores += f"{counter}. {ctx.author} | Floor {playerScores[i][0]} | {playerScores[i][1]}\n"
-                counter += 1
-            else: 
-                break
+    except Exception as e: 
+        print ("Exception: ", e)
+        sendErrorMessage(ctx)
+    finally:
+        con.commit()
+        cur.close()
+        con.close()
 
-        # Guild's top scores
-        if serverScores:
-            serverScores = sorted(serverScores, key=lambda x: x[1], reverse=True)
-            topServerScores = ""
-            counter = 1
-            for i in range(0, len(serverScores)):
-                if counter <= 10:
-                    topServerScores += f"{counter}. {serverScores[i][0]} | Floor {serverScores[i][1]} | {serverScores[i][2]}\n"
-                    counter += 1
-                else: 
-                    break
-        else:
-            topServerScores = topScores
+    # # Get highscores
+    # serverMembers = [[member.name, str(member.id)] for member in ctx.guild.members]
+    # playerScoreExists = False
+    # serverScores = []
+    # for line in data:
+    #     if str(ctx.author.id) in line:
+    #         playerScores = line.split(",")
+    #         playerScoreExists = True
+    #     for member in serverMembers:
+    #         if member[1] in line:
+    #             scores = list(map(lambda x: x.split("|"), line.split(",")))
+    #             for score in scores[1:]:
+    #                 if "\n" in score[1]:
+    #                     serverScores.append([member[0], score[0], score[1][:-2]])
+    #                 else:   
+    #                     serverScores.append([member[0], score[0], score[1]])
 
-    elif serverScores:
-        topScores = f"{ctx.author} has never survived the dungeon"
-        recentScores = f"{ctx.author} has never survived the dungeon"
-        serverScores = sorted(serverScores, key=lambda x: x[1], reverse=True)
-        counter = 1
-        topServerScores = ""
-        for i in range(0, len(serverScores)):
-            if counter <= 10:
-                topServerScores += f"{counter}. {serverScores[i][0]} | Floor {serverScores[i][1]} | {serverScores[i][2]}\n"
-                counter += 1
-            else: 
-                break
+    # if playerScoreExists:
+    #     # User's most recent scores
+    #     playerScores = list(map(lambda x: x.split("|"), playerScores))
+    #     playerScores[-1][-1] = playerScores[-1][-1][:-2]
+    #     recentScores = ""
+    #     counter = 1
+    #     for i in range(len(playerScores)-1, 0, -1):
+    #         if counter <= 10:
+    #             recentScores += f"{counter}. {ctx.author} | Floor {playerScores[i][0]} | {playerScores[i][1]}\n"
+    #             counter += 1
+    #         else: 
+    #             break
+
+    #     # User's top scores
+    #     playerScores = sorted(playerScores[1:], key=lambda x: x[0], reverse=True)
+    #     topScores = ""
+    #     counter = 1
+    #     for i in range(0, len(playerScores)):
+    #         if counter <= 10:
+    #             topScores += f"{counter}. {ctx.author} | Floor {playerScores[i][0]} | {playerScores[i][1]}\n"
+    #             counter += 1
+    #         else: 
+    #             break
+
+    #     # Guild's top scores
+    #     if serverScores:
+    #         serverScores = sorted(serverScores, key=lambda x: x[1], reverse=True)
+    #         topServerScores = ""
+    #         counter = 1
+    #         for i in range(0, len(serverScores)):
+    #             if counter <= 10:
+    #                 topServerScores += f"{counter}. {serverScores[i][0]} | Floor {serverScores[i][1]} | {serverScores[i][2]}\n"
+    #                 counter += 1
+    #             else: 
+    #                 break
+    #     else:
+    #         topServerScores = topScores
+
+    # elif serverScores:
+    #     topScores = f"{ctx.author} has never survived the dungeon"
+    #     recentScores = f"{ctx.author} has never survived the dungeon"
+    #     serverScores = sorted(serverScores, key=lambda x: x[1], reverse=True)
+    #     counter = 1
+    #     topServerScores = ""
+    #     for i in range(0, len(serverScores)):
+    #         if counter <= 10:
+    #             topServerScores += f"{counter}. {serverScores[i][0]} | Floor {serverScores[i][1]} | {serverScores[i][2]}\n"
+    #             counter += 1
+    #         else: 
+    #             break
     
-    # No recorded scores
-    else:
-        topScores = f"{ctx.author} has never survived the dungeon"
-        recentScores = f"{ctx.author} has never survived the dungeon"
-        topServerScores = f"Nobody from {ctx.guild.name} has ever survived the dungeon"
+    # # No recorded scores
+    # else:
+    #     topScores = f"{ctx.author} has never survived the dungeon"
+    #     recentScores = f"{ctx.author} has never survived the dungeon"
+    #     topServerScores = f"Nobody from {ctx.guild.name} has ever survived the dungeon"
+
+    topScores = ""
+    for i in range(len(playerScores)):
+        topScores += f"{i + 1}. {playerScores[i][1]} | Floor {playerScores[i][2]} | {playerScores[i][3]}\n"
+
+    globalTopScores = ""
+    for i in range(len(globalScores)):
+        globalTopScores += f"{i + 1}. {globalScores[i][1]} | Floor {globalScores[i][2]} | {globalScores[i][3]}\n"
+
     scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=topScores, colour=discord.Colour.orange())
-    counter = 2
+    showTopScores = True
     while True:
         # Show high scores
         await message.edit(embed=scoreEmbed)
@@ -565,15 +594,11 @@ async def showHighScores(ctx, client, message):
         if str(reaction.emoji) == "👑":
             return
         else:
-            if counter == 1:
-                scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=topScores, colour=discord.Colour.orange())
-                counter += 1
-            if counter == 2:
-                scoreEmbed = discord.Embed(title=f"{ctx.author}'s recent scores", description=recentScores, colour=discord.Colour.orange())
-                counter += 1
+            if showTopScores:
+                scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=globalTopScores, colour=discord.Colour.orange())
             else:
-                scoreEmbed = discord.Embed(title=f"{ctx.guild.name}'s top scores", description=topServerScores, colour=discord.Colour.orange())
-                counter = 1
+                scoreEmbed = discord.Embed(title=f"Global high scores", description=topScores, colour=discord.Colour.orange())
+            showTopScores = not showTopScores
 
 
 async def displayHelp(ctx, client, message):
@@ -599,31 +624,21 @@ def formatGoods(goods):
     return zip(names, desc)
 
 
-def saveScore(uid, floor):
+def saveScore(uid, name, floor):
     """ Saves the highest floor the player achieved that run """
 
-    # Get data
-    readFile = open("cogs/dungeonScores.txt", "r")
-    data = readFile.readlines()
-    readFile.close()
+    con = psycopg2.connect(os.getenv("DATABASE_URL"), sslmode='require')
+    cur = con.cursor()
 
-    # Add code to existing player
-    exists = False
-    today = date.today().strftime("%d/%m/%y")
-    for i in range(len(data)):
-        if uid in data[i]:
-            data[i] += f",{floor}|{today}"
-            exists = True
-            break
-
-    # Add code to new player
-    if not exists:
-        data.append(f"\n{uid},{floor}|{today}")      
-
-    # Write back to file
-    writeFile = open("cogs/dungeonScores.txt", "w")
-    writeFile.writelines(data)
-    writeFile.close()
+    try:
+        cur.execute("SET TIMEZONE='US/Eastern';")
+        cur.execute('INSERT INTO dungeon_scores VALUES (%s, %s, %s, NOW());', (uid, name, floor))
+    except Exception as e: 
+        print ("Exception: ", e)
+    finally:
+        con.commit()
+        cur.close()
+        con.close()
 
 
 def spawnMonster():
@@ -654,5 +669,7 @@ async def leaveDungeon(ctx, message, floor):
 
 
 
-
+async def sendErrorMessage(ctx):
+    """ Send an error message """
+    await ctx.send("An error occured, if this problem persists, contact Snypintyme#9303")
 

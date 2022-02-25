@@ -568,11 +568,13 @@ async def showHighScores(ctx, client, message):
 
     topScores = ""
     for i in range(len(playerScores)):
-        topScores += f"{i + 1}. {playerScores[i][1]} | Floor {playerScores[i][2]} | {playerScores[i][3]}\n"
+        date = playerScores[i][3].strftime("%b %d, %Y")
+        topScores += f"{i + 1}. {playerScores[i][1]} | Floor {playerScores[i][2]} | {date}\n"
 
     globalTopScores = ""
     for i in range(len(globalScores)):
-        globalTopScores += f"{i + 1}. {globalScores[i][1]} | Floor {globalScores[i][2]} | {globalScores[i][3]}\n"
+        date = globalScores[i][3].strftime("%b %d, %Y")
+        globalTopScores += f"{i + 1}. {globalScores[i][1]} | Floor {globalScores[i][2]} | {date}\n"
 
     scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=topScores, colour=discord.Colour.orange())
     showTopScores = True
@@ -595,9 +597,9 @@ async def showHighScores(ctx, client, message):
             return
         else:
             if showTopScores:
-                scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=globalTopScores, colour=discord.Colour.orange())
+                scoreEmbed = discord.Embed(title=f"Global high scores", description=globalTopScores, colour=discord.Colour.orange())
             else:
-                scoreEmbed = discord.Embed(title=f"Global high scores", description=topScores, colour=discord.Colour.orange())
+                scoreEmbed = discord.Embed(title=f"{ctx.author}'s high scores", description=topScores, colour=discord.Colour.orange())
             showTopScores = not showTopScores
 
 

@@ -1,5 +1,5 @@
 # import stuff
-import discord, asyncio, math, random, cogs.helperFunctions
+import discord, asyncio, math, random, cogs.helperFunctions, psycopg2, os
 from discord.ext import commands
 
 
@@ -157,62 +157,50 @@ class AnimeRPG(commands.Cog):
 
     @commands.command(aliases=["s"]) 
     async def summon(self, ctx):
-        """ Summons a anime character """
+        """ Summons a random character """
 
-        def generateUniqueCode():
-            """ Get a unique code """
+        def generateCode():
+            """ Get a random code """
+            row, col = random.randrange(8788), random.randrange(52)
+            codeLine = cogs.helperFunctions.getFromFile2("cogs/possibleCodes.txt", row, " ")
+            code = codeLine[col]
+            return code
+
+        con = psycopg2.connect(os.getenv("DATABASE_URL"), sslmode='require')
+        cur = con.cursor()
+
+        try:
+            # Get code
             while True:
-                # Pick possible code
-                row, col = random.randrange(8788), random.randrange(52)
+                code = generateCode()
+                cur.execute("SELECT * FROM claimed_characters WHERE code = %s", (code, ))
+                if len(cur.fetchall()) == 0: break
 
-                # Get the code
-                codeLine = cogs.helperFunctions.getFromFile2("cogs/possibleCodes.txt", row, " ")
-                code = codeLine[col]
+            # Get character
+            cur.execute("SELECT * FROM characters OFFSET (FLOOR(RANDOM() * (SELECT COUNT(*) FROM characters)) + 1) LIMIT 1")
+            character = cur.fetchone()
 
-                # Check if code is unique
-                if cogs.helperFunctions.getFromFile1("cogs/generatedCards.txt", code, " ") == False:
-                    return code
+            # Generate rating
+            rating = random.randint(40, 100)
 
+            # Save character
+            cur.execute('''INSERT INTO claimed_characters(code, name, anime, gender, image, owner, claimed_by, level, rating) 
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)''', (code, *character, ctx.author.id, ctx.author.id, 1, rating))
 
-        def getRandomCharacter():
-            """ Picks a random character and assigns it random base stats """
-            # Get character from characterList
-            totalCharacters = 545
+            # Display character
+            charEmbed = discord.Embed(title=f"{character[0]} {cogs.helperFunctions.getGenderSymbols(character[2])}", description=f"{character[1]}")
+            charEmbed.add_field(name="\u200b", value=f"{code}  ---  lvl 1  ---  {rating} :star:")
+            charEmbed.set_image(url=character[3])
+            await ctx.send(embed=charEmbed)
 
-            img = False
-            while not img:
-                count = random.randrange(totalCharacters)
-                character = cogs.helperFunctions.getFromFile2("cogs/characterList.txt", count, ",")
-                if len(character) == 4:
-                    img = True
+        except Exception as e: 
+            print("exception", e)
+            cogs.sendErrorMessage(ctx)
 
-            # Assign it a unique code
-            character.insert(0, generateUniqueCode())
-
-            # Add random stats
-            character.insert(1, random.randint(40, 100)) # Attack
-            character.insert(2, random.randint(40, 100)) # Hp
-
-            # Return final character
-            return character
-
-
-        uid = str(ctx.author.id)
-        character = getRandomCharacter()
-
-        # Display Summoned Character
-        charEmbed = discord.Embed(title=f"{character[3]} {cogs.helperFunctions.getGenderSymbols(character[4])}", description=f"{character[5]}")
-        charEmbed.add_field(name="\u200b", value=f"{character[0]} --- :crossed_swords:: {character[1]} --- :green_heart:: {character[2]}")
-        charEmbed.set_image(url=character[6])
-        await ctx.send(embed=charEmbed)
-
-        # Save character to collection
-        cogs.helperFunctions.saveToCollection(uid, [character[0]])
-
-        # Add character to generatedCards
-        appendFile = open("cogs/generatedCards.txt", "a")
-        appendFile.write(f"\n{character[0]}, {character[3]}, {character[4]}, {character[5]}, {character[1]}, {character[2]}, {character[6]}")
-        appendFile.close()
+        finally:
+            con.commit()
+            cur.close()
+            con.close()
 
 
 def setup(client):

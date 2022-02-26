@@ -47,9 +47,9 @@ def getFromFile3(path, whitespace):
 def getGenderSymbols(gender):
     """ Gets the appropriate gender symbol for displaying in discord """
     
-    if gender == "M":
+    if gender == "M" or gender == "Male":
         return ":male_sign:"
-    elif gender == "F":
+    elif gender == "F" or gender == "Female":
         return ":female_sign:"
     else:
         return ":male_sign::female_sign:"
@@ -357,7 +357,7 @@ class Weapon(Goods):
 
     def changeDurability(self, modifier):
         """ Changes the durability value and condition of the weapon """
-        self.durability += durability
+        #self.durability += durability
 
         if self.durability == self.maxDurability:
             self.setCondition(4)
@@ -581,7 +581,7 @@ async def showHighScores(ctx, client, message):
     while True:
         # Show high scores
         await message.edit(embed=scoreEmbed)
-        reactions = ["👑", "🔁"] 
+        reactions = ["⬅️", "🔁"] 
         await sendReactions(message, reactions)
 
         # Get response
@@ -593,7 +593,7 @@ async def showHighScores(ctx, client, message):
             await sendReactions(message, [])
             return 
 
-        if str(reaction.emoji) == "👑":
+        if str(reaction.emoji) == "⬅️":
             return
         else:
             if showTopScores:

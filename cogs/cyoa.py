@@ -132,7 +132,7 @@ class ChooseYourOwnAdventure(commands.Cog):
                         break
                     elif action == "➡️":
                         desc = f"You prepare to attack the {monster.getDisplay()} again..."
-                        monsterTurn = False #REmove react8ions when weapon breaks
+                        monsterTurn = False #Remove reactions when weapon breaks ??
                     else:
                         for i in range(0, len(reactions)):
                             if action == reactions[i]:
